@@ -135,6 +135,9 @@ func TestChatWritesAuditSetForEveryRetryAttempt(t *testing.T) {
 	if first.Attempt != 1 || first.Outcome != "rate_limited" {
 		t.Fatalf("first audit record = %+v", first)
 	}
+	if !strings.Contains(first.ResponseBody, "retry") {
+		t.Fatalf("first audit record missing upstream body: %+v", first)
+	}
 	if second.Attempt != 2 || second.Outcome != "success" {
 		t.Fatalf("second audit record = %+v", second)
 	}

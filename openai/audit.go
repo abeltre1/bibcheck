@@ -43,6 +43,7 @@ type auditRecord struct {
 	StatusCode     int      `json:"status_code,omitempty"`
 	Outcome        string   `json:"outcome"`
 	CorrelationIDs []string `json:"correlation_ids,omitempty"`
+	ResponseBody   string   `json:"response_body,omitempty"`
 	Error          string   `json:"error,omitempty"`
 }
 

@@ -169,6 +169,8 @@ func (c *Client) Chat(req *ChatRequest) (*ChatResponse, error) {
 
 		retryAfter, hasRetryAfter := retryAfterDuration(resp.Header)
 		auditRecord.Outcome = outcomeForStatus(resp.StatusCode, hasRetryAfter)
+		snippet := bodySnippet(body)
+		auditRecord.ResponseBody = snippet
 		if shouldRetryStatus(resp.StatusCode, hasRetryAfter) && attempt < maxRetries {
 			waitFor := retryAfter
 			if !hasRetryAfter {
@@ -176,12 +178,13 @@ func (c *Client) Chat(req *ChatRequest) (*ChatResponse, error) {
 			}
 			auditAttempt.finish(auditRecord)
 			log.Printf(
-				"openai: retrying upstream status=%d retry_after=%s attempt=%d/%d correlation_ids=%s",
+				"openai: retrying upstream status=%d retry_after=%s attempt=%d/%d correlation_ids=%s body=%q",
 				resp.StatusCode,
 				waitFor,
 				attempt+1,
 				maxRetries+1,
 				correlationLog,
+				snippet,
 			)
 			time.Sleep(waitFor)
 			continue
@@ -189,9 +192,10 @@ func (c *Client) Chat(req *ChatRequest) (*ChatResponse, error) {
 
 		auditAttempt.finish(auditRecord)
 		log.Printf(
-			"openai: API request failed status=%d correlation_ids=%s",
+			"openai: API request failed status=%d correlation_ids=%s body=%q",
 			resp.StatusCode,
 			correlationLog,
+			snippet,
 		)
 		return nil, fmt.Errorf(
 			"API request failed with status %d (correlation_ids=%s): %s",
@@ -234,6 +238,20 @@ func retryAfterDuration(headers http.Header) (time.Duration, bool) {
 	}
 
 	return 0, false
+}
+
+// maxBodySnippet bounds how much of an upstream error body is captured in logs
+// and audit records, so a large HTML error page can't flood the output.
+const maxBodySnippet = 2048
+
+// bodySnippet returns a trimmed, length-bounded view of an upstream response
+// body suitable for diagnostic logging of non-2xx responses.
+func bodySnippet(body []byte) string {
+	trimmed := strings.TrimSpace(string(body))
+	if len(trimmed) <= maxBodySnippet {
+		return trimmed
+	}
+	return trimmed[:maxBodySnippet] + "…(truncated)"
 }
 
 func shouldRetryStatus(statusCode int, hasRetryAfter bool) bool {
