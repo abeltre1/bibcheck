@@ -120,7 +120,7 @@ Then navigate to http://localhost:8080 in your browser
 
 `OPENROUTER_API_KEY` and `SHIRTY_API_KEY` are used automatically when set. Command-line flags still override environment values.
 `OPENROUTER_BASE_URL` and `SHIRTY_BASE_URL` are also supported.
-`SHIRTY_MODEL` (or `--shirty-model`) overrides the model used for the Shirty pipeline; it defaults to `openai/RedHatAI/Llama-3.3-70B-Instruct-quantized.w8a8`.
+`SHIRTY_MODEL` (or `--shirty-model`) overrides the model used for the Shirty pipeline; it defaults to `meta-llama/Llama-3.3-70B-Instruct`.
 
 ## Features
 

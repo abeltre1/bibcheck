@@ -10,7 +10,7 @@ import (
 
 // DefaultModel is the model used for shirty chat completions when none is
 // configured via WithModel.
-const DefaultModel = "openai/RedHatAI/Llama-3.3-70B-Instruct-quantized.w8a8"
+const DefaultModel = "meta-llama/Llama-3.3-70B-Instruct"
 
 type Workflow struct {
 	apiKey    string

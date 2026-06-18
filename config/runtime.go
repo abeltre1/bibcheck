@@ -21,7 +21,7 @@ const (
 
 	DefaultOpenRouterBaseURL = "https://openrouter.ai/api/v1"
 	DefaultShirtyBaseURL     = "https://shirty.sandia.gov/api/v1"
-	DefaultShirtyModel       = "openai/RedHatAI/Llama-3.3-70B-Instruct-quantized.w8a8"
+	DefaultShirtyModel       = "meta-llama/Llama-3.3-70B-Instruct"
 )
 
 type Settings struct {
