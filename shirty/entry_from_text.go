@@ -12,7 +12,6 @@ import (
 )
 
 var (
-	llama_33_70B_Model  = "openai/RedHatAI/Llama-3.3-70B-Instruct-quantized.w8a8"
 	llama_33_70B_Prompt = `Extract the requested bibliography entry from the document's bibliography.
 - Only extract the requested entry.
 - Do not create a bibliography reference for the provided document, extract the entry from the bibliography.
@@ -50,7 +49,7 @@ func (w *Workflow) EntryFromBibliography(b *documents.Bibliography, id int) (str
 	// - openai/gpt-oss-120b: seems to work the best
 	temp := new(float64)
 	*temp = 0.0
-	model := llama_33_70B_Model
+	model := w.model
 	req := &openai.ChatRequest{
 		Model: model,
 		Messages: []openai.Message{

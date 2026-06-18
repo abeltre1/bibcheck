@@ -14,8 +14,8 @@ import (
 )
 
 var (
-	// gpt-oss-120b seems unable to consistently obey the response format
-	summaryModelLlama33_70BInstruct  = "openai/RedHatAI/Llama-3.3-70B-Instruct-quantized.w8a8"
+	// Note: gpt-oss-120b seems unable to consistently obey the response format,
+	// so the default model (see shirty.DefaultModel) is preferred for summaries.
 	summaryPromptLlama33_70BInstruct = `The user will provide you with a bibliography entry, and some results for searching external databases for that entry. Determine whether the bibliography entry matches the search results.
 - Search results that conflict with the entry are almost certainly a mismatch
     - The author list must provide the same authors in the same order (allowing for "et al." at the end)
@@ -57,7 +57,7 @@ func (w *Workflow) Summarize(lr *lookup.Result) (bool, string, error) {
 	}
 
 	req := &openai.ChatRequest{
-		Model: summaryModelLlama33_70BInstruct,
+		Model: w.model,
 		Messages: []openai.Message{
 			openai.MakeSystemMessage(summaryPromptLlama33_70BInstruct),
 			openai.MakeUserMessage(

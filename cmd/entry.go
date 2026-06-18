@@ -30,6 +30,7 @@ var entryCmd = &cobra.Command{
 			shirtyClient := shirty.NewWorkflow(
 				settings.ShirtyAPIKey,
 				shirty.WithBaseUrl(settings.ShirtyBaseURL),
+				shirty.WithModel(settings.ShirtyModel),
 			)
 
 			bibliography, err := shirtyClient.PrepareBibliography(filePath)
