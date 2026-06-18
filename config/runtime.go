@@ -4,6 +4,7 @@ package config
 
 import (
 	"strings"
+	"time"
 
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -18,10 +19,12 @@ const (
 	KeyShirtyAPIKey      = "shirty_api_key"
 	KeyShirtyBaseURL     = "shirty_base_url"
 	KeyShirtyModel       = "shirty_model"
+	KeyShirtyTimeout     = "shirty_timeout"
 
 	DefaultOpenRouterBaseURL = "https://openrouter.ai/api/v1"
 	DefaultShirtyBaseURL     = "https://shirty.sandia.gov/api/v1"
 	DefaultShirtyModel       = "meta-llama/Llama-3.3-70B-Instruct"
+	DefaultShirtyTimeout     = 180 * time.Second
 )
 
 type Settings struct {
@@ -33,6 +36,7 @@ type Settings struct {
 	ShirtyAPIKey      string
 	ShirtyBaseURL     string
 	ShirtyModel       string
+	ShirtyTimeout     time.Duration
 }
 
 var runtimeConfig = viper.New()
@@ -44,6 +48,7 @@ func init() {
 	runtimeConfig.SetDefault(KeyOpenRouterBaseURL, DefaultOpenRouterBaseURL)
 	runtimeConfig.SetDefault(KeyShirtyBaseURL, DefaultShirtyBaseURL)
 	runtimeConfig.SetDefault(KeyShirtyModel, DefaultShirtyModel)
+	runtimeConfig.SetDefault(KeyShirtyTimeout, DefaultShirtyTimeout)
 }
 
 func BindFlags(flags *pflag.FlagSet) error {
@@ -56,6 +61,7 @@ func BindFlags(flags *pflag.FlagSet) error {
 		KeyShirtyAPIKey:      "shirty-api-key",
 		KeyShirtyBaseURL:     "shirty-base-url",
 		KeyShirtyModel:       "shirty-model",
+		KeyShirtyTimeout:     "shirty-timeout",
 	} {
 		if err := runtimeConfig.BindPFlag(key, flags.Lookup(flagName)); err != nil {
 			return err
@@ -71,6 +77,7 @@ func BindFlags(flags *pflag.FlagSet) error {
 		KeyShirtyAPIKey:      "SHIRTY_API_KEY",
 		KeyShirtyBaseURL:     "SHIRTY_BASE_URL",
 		KeyShirtyModel:       "SHIRTY_MODEL",
+		KeyShirtyTimeout:     "SHIRTY_TIMEOUT",
 	} {
 		if err := runtimeConfig.BindEnv(key, envName); err != nil {
 			return err
@@ -90,5 +97,6 @@ func Runtime() Settings {
 		ShirtyAPIKey:      runtimeConfig.GetString(KeyShirtyAPIKey),
 		ShirtyBaseURL:     runtimeConfig.GetString(KeyShirtyBaseURL),
 		ShirtyModel:       runtimeConfig.GetString(KeyShirtyModel),
+		ShirtyTimeout:     runtimeConfig.GetDuration(KeyShirtyTimeout),
 	}
 }

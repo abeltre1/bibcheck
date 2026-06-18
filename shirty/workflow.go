@@ -12,6 +12,11 @@ import (
 // configured via WithModel.
 const DefaultModel = "meta-llama/Llama-3.3-70B-Instruct"
 
+// DefaultTimeout bounds how long a single shirty request waits for a response.
+// It is generous because large models can be slow to respond (or cold-loading)
+// behind the proxy. Override it with WithTimeout.
+const DefaultTimeout = 180 * time.Second
+
 type Workflow struct {
 	apiKey    string
 	baseUrl   string
@@ -29,7 +34,7 @@ func NewWorkflow(apiKey string, options ...WorkflowOpt) *Workflow {
 		oaiClient: openai.NewClient(
 			apiKey,
 			openai.WithBaseUrl("https://shirty.sandia.gov/api/v1"),
-			openai.WithTimeout(60*time.Second),
+			openai.WithTimeout(DefaultTimeout),
 		),
 	}
 	for _, o := range options {
@@ -53,6 +58,17 @@ func WithModel(model string) WorkflowOpt {
 			return
 		}
 		w.model = model
+	}
+}
+
+// WithTimeout overrides how long a single request waits for a response. A
+// non-positive value is ignored so the default timeout is preserved.
+func WithTimeout(d time.Duration) WorkflowOpt {
+	return func(w *Workflow) {
+		if d <= 0 {
+			return
+		}
+		openai.WithTimeout(d)(w.oaiClient)
 	}
 }
 
