@@ -122,6 +122,15 @@ Then navigate to http://localhost:8080 in your browser
 `OPENROUTER_BASE_URL` and `SHIRTY_BASE_URL` are also supported.
 `SHIRTY_MODEL` (or `--shirty-model`) overrides the model used for the Shirty pipeline; it defaults to `meta-llama/Llama-3.3-70B-Instruct`.
 `SHIRTY_TIMEOUT` (or `--shirty-timeout`) sets the per-request timeout for Shirty calls (e.g. `180s`, `3m`); it defaults to `180s`. Raise it if large models are slow to respond.
+`SHIRTY_CHAT_BASE_URL` (or `--shirty-chat-base-url`) points chat completions at a separate OpenAI-compatible endpoint, bypassing the gateway for chat while text extraction still uses `SHIRTY_BASE_URL`. `SHIRTY_CHAT_API_KEY` (or `--shirty-chat-api-key`) sets the bearer token for that endpoint. For example, to send chat straight to a self-hosted vLLM server:
+
+```bash
+export SHIRTY_API_KEY=sk-...                                   # gateway key, used for text extraction
+export SHIRTY_CHAT_BASE_URL=https://my-vllm.example.com/v1     # direct chat endpoint
+export SHIRTY_CHAT_API_KEY=...                                 # direct endpoint key
+export SHIRTY_MODEL=RedHatAI/Llama-3.3-70B-Instruct-quantized.w8a8
+go run main.go test/20231113_siefert_pmbs.pdf
+```
 
 ## Features
 

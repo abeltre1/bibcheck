@@ -48,6 +48,17 @@ func WithBaseUrl(baseUrl string) ClientOpt {
 	}
 }
 
+// WithAPIKey overrides the bearer token used for requests. An empty value is
+// ignored so an already-configured key is preserved.
+func WithAPIKey(apiKey string) ClientOpt {
+	return func(c *Client) {
+		if apiKey == "" {
+			return
+		}
+		c.apiKey = apiKey
+	}
+}
+
 func WithTimeout(t time.Duration) ClientOpt {
 	return func(c *Client) {
 		c.httpClient.Timeout = t

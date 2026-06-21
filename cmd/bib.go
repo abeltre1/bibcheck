@@ -27,6 +27,7 @@ var bibCmd = &cobra.Command{
 				shirty.WithBaseUrl(settings.ShirtyBaseURL),
 				shirty.WithModel(settings.ShirtyModel),
 				shirty.WithTimeout(settings.ShirtyTimeout),
+				shirty.WithChatEndpoint(settings.ShirtyChatBaseURL, settings.ShirtyChatAPIKey),
 			)
 
 			bibliography, err := shirtyClient.PrepareBibliography(filePath)

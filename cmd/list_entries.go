@@ -28,6 +28,7 @@ var listEntriesCmd = &cobra.Command{
 				shirty.WithBaseUrl(settings.ShirtyBaseURL),
 				shirty.WithModel(settings.ShirtyModel),
 				shirty.WithTimeout(settings.ShirtyTimeout),
+				shirty.WithChatEndpoint(settings.ShirtyChatBaseURL, settings.ShirtyChatAPIKey),
 			)
 
 			bibliography, err := shirtyWorkflow.PrepareBibliography(filePath)

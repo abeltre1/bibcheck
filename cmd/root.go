@@ -76,7 +76,8 @@ A tool that analyzes bibliography entries in PDF files and verifies their existe
 				settings.ShirtyAPIKey,
 				shirty.WithBaseUrl(settings.ShirtyBaseURL),
 				shirty.WithModel(settings.ShirtyModel),
-				shirty.WithTimeout(settings.ShirtyTimeout))
+				shirty.WithTimeout(settings.ShirtyTimeout),
+				shirty.WithChatEndpoint(settings.ShirtyChatBaseURL, settings.ShirtyChatAPIKey))
 		}
 
 		var elsevierClient *elsevier.Client
@@ -215,6 +216,8 @@ func init() {
 	rootCmd.PersistentFlags().String("shirty-base-url", config.DefaultShirtyBaseURL, "Shirty base URL")
 	rootCmd.PersistentFlags().String("shirty-model", config.DefaultShirtyModel, "Shirty chat-completion model")
 	rootCmd.PersistentFlags().Duration("shirty-timeout", config.DefaultShirtyTimeout, "Per-request timeout for Shirty calls (e.g. 180s, 3m)")
+	rootCmd.PersistentFlags().String("shirty-chat-base-url", "", "OpenAI-compatible base URL for chat completions (bypasses the gateway for chat; textract still uses --shirty-base-url)")
+	rootCmd.PersistentFlags().String("shirty-chat-api-key", "", "Bearer token for --shirty-chat-base-url (defaults to --shirty-api-key)")
 	if err := config.BindFlags(rootCmd.PersistentFlags()); err != nil {
 		panic(err)
 	}

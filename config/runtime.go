@@ -20,6 +20,8 @@ const (
 	KeyShirtyBaseURL     = "shirty_base_url"
 	KeyShirtyModel       = "shirty_model"
 	KeyShirtyTimeout     = "shirty_timeout"
+	KeyShirtyChatBaseURL = "shirty_chat_base_url"
+	KeyShirtyChatAPIKey  = "shirty_chat_api_key"
 
 	DefaultOpenRouterBaseURL = "https://openrouter.ai/api/v1"
 	DefaultShirtyBaseURL     = "https://shirty.sandia.gov/api/v1"
@@ -37,6 +39,8 @@ type Settings struct {
 	ShirtyBaseURL     string
 	ShirtyModel       string
 	ShirtyTimeout     time.Duration
+	ShirtyChatBaseURL string
+	ShirtyChatAPIKey  string
 }
 
 var runtimeConfig = viper.New()
@@ -62,6 +66,8 @@ func BindFlags(flags *pflag.FlagSet) error {
 		KeyShirtyBaseURL:     "shirty-base-url",
 		KeyShirtyModel:       "shirty-model",
 		KeyShirtyTimeout:     "shirty-timeout",
+		KeyShirtyChatBaseURL: "shirty-chat-base-url",
+		KeyShirtyChatAPIKey:  "shirty-chat-api-key",
 	} {
 		if err := runtimeConfig.BindPFlag(key, flags.Lookup(flagName)); err != nil {
 			return err
@@ -78,6 +84,8 @@ func BindFlags(flags *pflag.FlagSet) error {
 		KeyShirtyBaseURL:     "SHIRTY_BASE_URL",
 		KeyShirtyModel:       "SHIRTY_MODEL",
 		KeyShirtyTimeout:     "SHIRTY_TIMEOUT",
+		KeyShirtyChatBaseURL: "SHIRTY_CHAT_BASE_URL",
+		KeyShirtyChatAPIKey:  "SHIRTY_CHAT_API_KEY",
 	} {
 		if err := runtimeConfig.BindEnv(key, envName); err != nil {
 			return err
@@ -98,5 +106,7 @@ func Runtime() Settings {
 		ShirtyBaseURL:     runtimeConfig.GetString(KeyShirtyBaseURL),
 		ShirtyModel:       runtimeConfig.GetString(KeyShirtyModel),
 		ShirtyTimeout:     runtimeConfig.GetDuration(KeyShirtyTimeout),
+		ShirtyChatBaseURL: runtimeConfig.GetString(KeyShirtyChatBaseURL),
+		ShirtyChatAPIKey:  runtimeConfig.GetString(KeyShirtyChatAPIKey),
 	}
 }

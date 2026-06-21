@@ -72,6 +72,20 @@ func WithTimeout(d time.Duration) WorkflowOpt {
 	}
 }
 
+// WithChatEndpoint points chat-completion requests at a separate
+// OpenAI-compatible endpoint (and optional bearer token), leaving textract on
+// the workflow's base URL. This allows bypassing a gateway/proxy for chat while
+// still using the gateway's document-extraction service. Empty values are
+// ignored so the existing chat endpoint/key are preserved.
+func WithChatEndpoint(baseURL, apiKey string) WorkflowOpt {
+	return func(w *Workflow) {
+		if baseURL != "" {
+			openai.WithBaseUrl(baseURL)(w.oaiClient)
+		}
+		openai.WithAPIKey(apiKey)(w.oaiClient)
+	}
+}
+
 func WithAuditEnabled(enabled bool) WorkflowOpt {
 	return func(w *Workflow) {
 		openai.WithAuditEnabled(enabled)(w.oaiClient)
