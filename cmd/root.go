@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
 
 	"github.com/spf13/cobra"
 
@@ -154,34 +155,62 @@ A tool that analyzes bibliography entries in PDF files and verifies their existe
 			summarizer = shirtyProvider
 		}
 
-		views := []entryView{}
+		if docBibliographyExtract == nil || bibliography == nil {
+			return errors.New("requires something that can extract a bib entry from a pdf")
+		}
+
 		singleEntry := cmd.Flags().Changed(FlagEntry)
 
-		for i := entryStart; i < entryStart+entryCount; i++ {
-			var lr *lookup.Result
-			if docBibliographyExtract != nil && bibliography != nil {
-				lr, err = lookup.EntryFromBibliography(bibliography, i, pipeline, class, docBibliographyExtract, docMeta, entryParser, cfg)
-			} else {
-				return errors.New("requires something that can extract a bib entry from a pdf")
-			}
+		concurrency := settings.Concurrency
+		if concurrency < 1 {
+			concurrency = 1
+		}
 
-			if err != nil {
-				log.Printf("entry analysis error: %v", err)
-				continue
-			}
+		// Entries are independent and their analysis is network-I/O bound, so fan
+		// the work out across a bounded worker pool. Results are written back by
+		// index to keep the original entry order; a nil slot means the entry
+		// errored and is skipped, matching the previous sequential behavior.
+		pending := make([]*entryView, entryCount)
+		var wg sync.WaitGroup
+		sem := make(chan struct{}, concurrency)
 
-			outcome := summaryOutcome{}
-			if summarizer != nil {
-				mismatch, comment, err := summarizer.Summarize(lr)
-				outcome.mismatch = mismatch
-				outcome.comment = comment
-				outcome.err = err
+		for offset := 0; offset < entryCount; offset++ {
+			offset := offset
+			i := entryStart + offset
+			wg.Add(1)
+			sem <- struct{}{}
+			go func() {
+				defer wg.Done()
+				defer func() { <-sem }()
+
+				lr, err := lookup.EntryFromBibliography(bibliography, i, pipeline, class, docBibliographyExtract, docMeta, entryParser, cfg)
 				if err != nil {
-					log.Printf("summarizer error: %v", err)
+					log.Printf("entry analysis error: %v", err)
+					return
 				}
-			}
 
-			views = append(views, buildEntryView(i, lr, outcome))
+				outcome := summaryOutcome{}
+				if summarizer != nil {
+					mismatch, comment, err := summarizer.Summarize(lr)
+					outcome.mismatch = mismatch
+					outcome.comment = comment
+					outcome.err = err
+					if err != nil {
+						log.Printf("summarizer error: %v", err)
+					}
+				}
+
+				view := buildEntryView(i, lr, outcome)
+				pending[offset] = &view
+			}()
+		}
+		wg.Wait()
+
+		views := make([]entryView, 0, entryCount)
+		for _, v := range pending {
+			if v != nil {
+				views = append(views, *v)
+			}
 		}
 
 		doc := buildDocumentView(views, carelessHideOK)
@@ -211,6 +240,7 @@ func init() {
 	rootCmd.PersistentFlags().String("openrouter-base-url", config.DefaultOpenRouterBaseURL, "Openrouter-compatible API url")
 	rootCmd.PersistentFlags().String("shirty-api-key", "", "shirty.sandia.gov API key")
 	rootCmd.PersistentFlags().String("shirty-base-url", config.DefaultShirtyBaseURL, "Shirty base URL")
+	rootCmd.PersistentFlags().Int("concurrency", config.DefaultConcurrency, "Maximum number of bibliography entries to analyze concurrently")
 	if err := config.BindFlags(rootCmd.PersistentFlags()); err != nil {
 		panic(err)
 	}

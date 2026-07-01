@@ -121,9 +121,14 @@ Then navigate to http://localhost:8080 in your browser
 `OPENROUTER_API_KEY` and `SHIRTY_API_KEY` are used automatically when set. Command-line flags still override environment values.
 `OPENROUTER_BASE_URL` and `SHIRTY_BASE_URL` are also supported.
 
+Bibliography entries are analyzed concurrently. Use `--concurrency` (or `BIBCHECK_CONCURRENCY`) to bound how many entries are processed at once; it defaults to `4`. Lower it to respect stricter API rate limits, or raise it to speed up large bibliographies:
+```
+go run main.go --concurrency 8 test/20231113_siefert_pmbs.pdf
+```
+
 ## Features
 
-* Extracts bibliography entries from PDF documents and analyzes them one-by-one
+* Extracts bibliography entries from PDF documents and analyzes them concurrently (bounded by `--concurrency`)
 * Supports both CLI analysis and a lightweight web UI for uploaded PDFs
 * Uses configured LLM backends for bibliography counting, entry extraction, metadata parsing, and optional result summarization
     * `SHIRTY_API_KEY` enables the Shirty-based pipeline
