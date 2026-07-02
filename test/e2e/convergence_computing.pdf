@@ -1,0 +1,155 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [5 0 R 7 0 R 9 0 R 11 0 R] /Count 4 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+4 0 obj
+<< /Length 768 >>
+stream
+BT
+/F1 9 Tf
+50 770 Td
+12 TL
+(Convergence of Edge Computing and Deep Learning: A Test Document) Tj
+T*
+(X. Wang, Y. Han, V. C. M. Leung, D. Niyato, X. Yan, and X. Chen) Tj
+T*
+() Tj
+T*
+(Abstract - Ubiquitous sensors and smart devices generate massive amounts of) Tj
+T*
+(data at the network edge, and ever-increasing computing power is driving the) Tj
+T*
+(core of computation and services from the cloud to the edge. This test) Tj
+T*
+(document stands in for a Google-Scholar-indexed survey on the convergence of) Tj
+T*
+(edge computing and deep learning. Its bibliography below consists of real) Tj
+T*
+(citations drawn from that literature, so that bibcheck's lookup pipeline can) Tj
+T*
+(be exercised end to end against genuine DOIs, arXiv identifiers, and URLs.) Tj
+T*
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 4 0 R >>
+endobj
+6 0 obj
+<< /Length 836 >>
+stream
+BT
+/F1 9 Tf
+50 770 Td
+12 TL
+(I. INTRODUCTION) Tj
+T*
+() Tj
+T*
+(As a key technology of this convergence, edge intelligence pushes model) Tj
+T*
+(training and inference from centralized datacenters toward the places where) Tj
+T*
+(data originates. Surveys of mobile edge computing chart the communication) Tj
+T*
+(perspective of this shift, while landmark deep learning results motivate the) Tj
+T*
+(demand for computation everywhere. Federated optimization demonstrates that) Tj
+T*
+(learning can proceed without centralizing raw data, and efficient) Tj
+T*
+(architectures bring inference to resource-constrained devices. Standards) Tj
+T*
+(bodies meanwhile define reference architectures for multi-access edge) Tj
+T*
+(computing. The remainder of this document exists solely to carry the) Tj
+T*
+(reference list on the following pages.) Tj
+T*
+ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 6 0 R >>
+endobj
+8 0 obj
+<< /Length 1563 >>
+stream
+BT
+/F1 9 Tf
+50 770 Td
+12 TL
+(REFERENCES) Tj
+T*
+() Tj
+T*
+([1] W. Shi, J. Cao, Q. Zhang, Y. Li, and L. Xu, "Edge computing: Vision and challenges," IEEE Internet of Things Journal, vol. 3, no. 5, pp. 637-646, 2016. https://doi.org/10.1109/JIOT.2016.2579198) Tj
+T*
+([2] Y. Mao, C. You, J. Zhang, K. Huang, and K. B. Letaief, "A survey on mobile edge computing: The communication perspective," IEEE Communications Surveys and Tutorials, vol. 19, no. 4, pp. 2322-2358, 2017. https://doi.org/10.1109/COMST.2017.2745201) Tj
+T*
+([3] M. Satyanarayanan, "The emergence of edge computing," Computer, vol. 50, no. 1, pp. 30-39, 2017. https://doi.org/10.1109/MC.2017.9) Tj
+T*
+([4] Y. LeCun, Y. Bengio, and G. Hinton, "Deep learning," Nature, vol. 521, no. 7553, pp. 436-444, 2015. https://doi.org/10.1038/nature14539) Tj
+T*
+([5] K. He, X. Zhang, S. Ren, and J. Sun, "Deep residual learning for image recognition," arXiv preprint arXiv:1512.03385, 2015.) Tj
+T*
+([6] A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez, L. Kaiser, and I. Polosukhin, "Attention is all you need," arXiv preprint arXiv:1706.03762, 2017.) Tj
+T*
+([7] H. B. McMahan, E. Moore, D. Ramage, S. Hampson, and B. Aguera y Arcas, "Communication-efficient learning of deep networks from decentralized data," arXiv preprint arXiv:1602.05629, 2016.) Tj
+T*
+([8] A. G. Howard, M. Zhu, B. Chen, D. Kalenichenko, W. Wang, T. Weyand, M. Andreetto, and H. Adam, "MobileNets: Efficient convolutional neural networks for mobile vision applications," arXiv preprint arXiv:1704.04861, 2017.) Tj
+T*
+ET
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 8 0 R >>
+endobj
+10 0 obj
+<< /Length 885 >>
+stream
+BT
+/F1 9 Tf
+50 770 Td
+12 TL
+([9] F. Bonomi, R. Milito, J. Zhu, and S. Addepalli, "Fog computing and its role in the internet of things," in Proceedings of the First Edition of the MCC Workshop on Mobile Cloud Computing, 2012, pp. 13-16. https://doi.org/10.1145/2342509.2342513) Tj
+T*
+([10] D. Silver, A. Huang, C. J. Maddison, A. Guez, L. Sifre, et al., "Mastering the game of Go with deep neural networks and tree search," Nature, vol. 529, no. 7587, pp. 484-489, 2016. https://doi.org/10.1038/nature16961) Tj
+T*
+([11] 2017. NVIDIA Tesla V100 GPU Architecture. https://images.nvidia.com/content/volta-architecture/pdf/volta-architecture-whitepaper.pdf) Tj
+T*
+([12] ETSI, "Multi-access edge computing \(MEC\): Framework and reference architecture," ETSI GS MEC 003 V2.1.1, 2019. https://www.etsi.org/deliver/etsi_gs/MEC/001_099/003/02.01.01_60/gs_MEC003v020101p.pdf) Tj
+T*
+() Tj
+T*
+ET
+endstream
+endobj
+11 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 10 0 R >>
+endobj
+xref
+0 12
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000134 00000 n 
+0000000231 00000 n 
+0000001049 00000 n 
+0000001175 00000 n 
+0000002061 00000 n 
+0000002187 00000 n 
+0000003801 00000 n 
+0000003927 00000 n 
+0000004863 00000 n 
+trailer
+<< /Size 12 /Root 1 0 R >>
+startxref
+4991
+%%EOF

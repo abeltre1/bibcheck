@@ -1,0 +1,39 @@
+Convergence of Edge Computing and Deep Learning: A Test Document
+X. Wang, Y. Han, V. C. M. Leung, D. Niyato, X. Yan, and X. Chen
+
+Abstract - Ubiquitous sensors and smart devices generate massive amounts of
+data at the network edge, and ever-increasing computing power is driving the
+core of computation and services from the cloud to the edge. This test
+document stands in for a Google-Scholar-indexed survey on the convergence of
+edge computing and deep learning. Its bibliography below consists of real
+citations drawn from that literature, so that bibcheck's lookup pipeline can
+be exercised end to end against genuine DOIs, arXiv identifiers, and URLs.
+===PAGE===
+I. INTRODUCTION
+
+As a key technology of this convergence, edge intelligence pushes model
+training and inference from centralized datacenters toward the places where
+data originates. Surveys of mobile edge computing chart the communication
+perspective of this shift, while landmark deep learning results motivate the
+demand for computation everywhere. Federated optimization demonstrates that
+learning can proceed without centralizing raw data, and efficient
+architectures bring inference to resource-constrained devices. Standards
+bodies meanwhile define reference architectures for multi-access edge
+computing. The remainder of this document exists solely to carry the
+reference list on the following pages.
+===PAGE===
+REFERENCES
+
+[1] W. Shi, J. Cao, Q. Zhang, Y. Li, and L. Xu, "Edge computing: Vision and challenges," IEEE Internet of Things Journal, vol. 3, no. 5, pp. 637-646, 2016. https://doi.org/10.1109/JIOT.2016.2579198
+[2] Y. Mao, C. You, J. Zhang, K. Huang, and K. B. Letaief, "A survey on mobile edge computing: The communication perspective," IEEE Communications Surveys and Tutorials, vol. 19, no. 4, pp. 2322-2358, 2017. https://doi.org/10.1109/COMST.2017.2745201
+[3] M. Satyanarayanan, "The emergence of edge computing," Computer, vol. 50, no. 1, pp. 30-39, 2017. https://doi.org/10.1109/MC.2017.9
+[4] Y. LeCun, Y. Bengio, and G. Hinton, "Deep learning," Nature, vol. 521, no. 7553, pp. 436-444, 2015. https://doi.org/10.1038/nature14539
+[5] K. He, X. Zhang, S. Ren, and J. Sun, "Deep residual learning for image recognition," arXiv preprint arXiv:1512.03385, 2015.
+[6] A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez, L. Kaiser, and I. Polosukhin, "Attention is all you need," arXiv preprint arXiv:1706.03762, 2017.
+[7] H. B. McMahan, E. Moore, D. Ramage, S. Hampson, and B. Aguera y Arcas, "Communication-efficient learning of deep networks from decentralized data," arXiv preprint arXiv:1602.05629, 2016.
+[8] A. G. Howard, M. Zhu, B. Chen, D. Kalenichenko, W. Wang, T. Weyand, M. Andreetto, and H. Adam, "MobileNets: Efficient convolutional neural networks for mobile vision applications," arXiv preprint arXiv:1704.04861, 2017.
+===PAGE===
+[9] F. Bonomi, R. Milito, J. Zhu, and S. Addepalli, "Fog computing and its role in the internet of things," in Proceedings of the First Edition of the MCC Workshop on Mobile Cloud Computing, 2012, pp. 13-16. https://doi.org/10.1145/2342509.2342513
+[10] D. Silver, A. Huang, C. J. Maddison, A. Guez, L. Sifre, et al., "Mastering the game of Go with deep neural networks and tree search," Nature, vol. 529, no. 7587, pp. 484-489, 2016. https://doi.org/10.1038/nature16961
+[11] 2017. NVIDIA Tesla V100 GPU Architecture. https://images.nvidia.com/content/volta-architecture/pdf/volta-architecture-whitepaper.pdf
+[12] ETSI, "Multi-access edge computing (MEC): Framework and reference architecture," ETSI GS MEC 003 V2.1.1, 2019. https://www.etsi.org/deliver/etsi_gs/MEC/001_099/003/02.01.01_60/gs_MEC003v020101p.pdf

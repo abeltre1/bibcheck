@@ -17,9 +17,14 @@ const (
 	KeyOpenRouterBaseURL = "openrouter_base_url"
 	KeyShirtyAPIKey      = "shirty_api_key"
 	KeyShirtyBaseURL     = "shirty_base_url"
+	KeyConcurrency       = "concurrency"
 
 	DefaultOpenRouterBaseURL = "https://openrouter.ai/api/v1"
 	DefaultShirtyBaseURL     = "https://shirty.sandia.gov/api/v1"
+	// DefaultConcurrency bounds how many bibliography entries are analyzed at
+	// once. Entry analysis is network-I/O bound, so a small pool overlaps
+	// latency while staying well within LLM/metadata-API rate limits.
+	DefaultConcurrency = 4
 )
 
 type Settings struct {
@@ -30,6 +35,7 @@ type Settings struct {
 	OpenRouterBaseURL string
 	ShirtyAPIKey      string
 	ShirtyBaseURL     string
+	Concurrency       int
 }
 
 var runtimeConfig = viper.New()
@@ -40,6 +46,7 @@ func init() {
 	runtimeConfig.SetDefault(KeyOpenAIAuditEnable, true)
 	runtimeConfig.SetDefault(KeyOpenRouterBaseURL, DefaultOpenRouterBaseURL)
 	runtimeConfig.SetDefault(KeyShirtyBaseURL, DefaultShirtyBaseURL)
+	runtimeConfig.SetDefault(KeyConcurrency, DefaultConcurrency)
 }
 
 func BindFlags(flags *pflag.FlagSet) error {
@@ -51,6 +58,7 @@ func BindFlags(flags *pflag.FlagSet) error {
 		KeyOpenRouterBaseURL: "openrouter-base-url",
 		KeyShirtyAPIKey:      "shirty-api-key",
 		KeyShirtyBaseURL:     "shirty-base-url",
+		KeyConcurrency:       "concurrency",
 	} {
 		if err := runtimeConfig.BindPFlag(key, flags.Lookup(flagName)); err != nil {
 			return err
@@ -65,6 +73,7 @@ func BindFlags(flags *pflag.FlagSet) error {
 		KeyOpenRouterBaseURL: "OPENROUTER_BASE_URL",
 		KeyShirtyAPIKey:      "SHIRTY_API_KEY",
 		KeyShirtyBaseURL:     "SHIRTY_BASE_URL",
+		KeyConcurrency:       "BIBCHECK_CONCURRENCY",
 	} {
 		if err := runtimeConfig.BindEnv(key, envName); err != nil {
 			return err
@@ -83,5 +92,6 @@ func Runtime() Settings {
 		OpenRouterBaseURL: runtimeConfig.GetString(KeyOpenRouterBaseURL),
 		ShirtyAPIKey:      runtimeConfig.GetString(KeyShirtyAPIKey),
 		ShirtyBaseURL:     runtimeConfig.GetString(KeyShirtyBaseURL),
+		Concurrency:       runtimeConfig.GetInt(KeyConcurrency),
 	}
 }

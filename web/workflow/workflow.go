@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/sandialabs/bibcheck/documents"
 	"github.com/sandialabs/bibcheck/entries"
@@ -14,6 +15,12 @@ import (
 	"github.com/sandialabs/bibcheck/openrouter"
 	"github.com/sandialabs/bibcheck/shirty"
 )
+
+// defaultConcurrency bounds how many entries are extracted/analyzed at once
+// when Options.Concurrency is unset. Kept in sync with config.DefaultConcurrency
+// (the CLI default); duplicated here to avoid importing the viper-based config
+// package into the wasm bundle.
+const defaultConcurrency = 4
 
 type ProviderKind string
 
@@ -50,6 +57,9 @@ type Progress func(State)
 
 type Options struct {
 	Entry int
+	// Concurrency bounds how many entries are processed at once. Values < 1 fall
+	// back to defaultConcurrency.
+	Concurrency int
 }
 
 type Provider interface {
@@ -167,54 +177,73 @@ func AnalyzePDFWithOptions(ctx context.Context, rt *Runtime, pdf []byte, options
 			AnalysisStatus: "pending",
 		}
 	}
+	concurrency := options.Concurrency
+	if concurrency < 1 {
+		concurrency = defaultConcurrency
+	}
+
+	// Entries are independent, so both phases fan work out across a bounded
+	// worker pool. state is shared, so all mutations and progress snapshots go
+	// through report, which serializes them under mu. Each worker writes only
+	// its own state.Entries[i], preserving order without an explicit merge.
+	var mu sync.Mutex
+	report := func(mutate func()) {
+		mu.Lock()
+		mutate()
+		snapshot := cloneState(state)
+		mu.Unlock()
+		if progress != nil {
+			progress(snapshot)
+		}
+	}
+
 	state.Phase = "Extracting entries"
 	emit(progress, state)
 
-	for i := range state.Entries {
-		if err := ctx.Err(); err != nil {
-			return fail(progress, state, err)
-		}
-
-		state.Entries[i].TextStatus = "active"
-		emit(progress, state)
+	runPhase(ctx, len(state.Entries), concurrency, func(i int) {
+		report(func() { state.Entries[i].TextStatus = "active" })
 
 		text, err := rt.Provider.EntryFromBibliography(bibliography, entryIDs[i])
 		if err != nil {
-			state.Entries[i].TextStatus = "error"
-			state.Entries[i].Error = fmt.Sprintf("extract entry: %v", err)
-			emit(progress, state)
-			continue
+			report(func() {
+				state.Entries[i].TextStatus = "error"
+				state.Entries[i].Error = fmt.Sprintf("extract entry: %v", err)
+			})
+			return
 		}
 
-		state.Entries[i].TextStatus = "completed"
-		state.Entries[i].Text = text
-		emit(progress, state)
+		report(func() {
+			state.Entries[i].TextStatus = "completed"
+			state.Entries[i].Text = text
+		})
+	})
+	if err := ctx.Err(); err != nil {
+		return fail(progress, state, err)
 	}
 
 	state.Phase = "Analyzing entries"
 	emit(progress, state)
-	for i := range state.Entries {
-		if err := ctx.Err(); err != nil {
-			return fail(progress, state, err)
-		}
+
+	runPhase(ctx, len(state.Entries), concurrency, func(i int) {
 		if state.Entries[i].TextStatus != "completed" {
-			state.Entries[i].AnalysisStatus = "error"
-			if state.Entries[i].Error == "" {
-				state.Entries[i].Error = "entry text was not extracted"
-			}
-			emit(progress, state)
-			continue
+			report(func() {
+				state.Entries[i].AnalysisStatus = "error"
+				if state.Entries[i].Error == "" {
+					state.Entries[i].Error = "entry text was not extracted"
+				}
+			})
+			return
 		}
 
-		state.Entries[i].AnalysisStatus = "active"
-		emit(progress, state)
+		report(func() { state.Entries[i].AnalysisStatus = "active" })
 
 		result, err := lookup.Entry(state.Entries[i].Text, "auto", rt.Provider, rt.Provider, rt.Provider, nil)
 		if err != nil {
-			state.Entries[i].AnalysisStatus = "error"
-			state.Entries[i].Error = fmt.Sprintf("analyze entry: %v", err)
-			emit(progress, state)
-			continue
+			report(func() {
+				state.Entries[i].AnalysisStatus = "error"
+				state.Entries[i].Error = fmt.Sprintf("analyze entry: %v", err)
+			})
+			return
 		}
 
 		mismatch, comment, summaryErr := rt.Provider.Summarize(result)
@@ -226,15 +255,44 @@ func AnalyzePDFWithOptions(ctx context.Context, rt *Runtime, pdf []byte, options
 			result.Summary.Comment = comment
 		}
 
-		state.Entries[i].AnalysisStatus = "completed"
-		state.Entries[i].Analysis = FormatAnalysis(result)
-		state.Completed++
-		emit(progress, state)
+		report(func() {
+			state.Entries[i].AnalysisStatus = "completed"
+			state.Entries[i].Analysis = FormatAnalysis(result)
+			state.Completed++
+		})
+	})
+	if err := ctx.Err(); err != nil {
+		return fail(progress, state, err)
 	}
 
 	state.Phase = "Done"
 	emit(progress, state)
 	return state
+}
+
+// runPhase runs work(i) for each i in [0, n) across at most concurrency
+// goroutines, returning once every task has finished. Tasks are skipped once
+// ctx is cancelled so an aborted run stops launching new work promptly.
+func runPhase(ctx context.Context, n, concurrency int, work func(i int)) {
+	var wg sync.WaitGroup
+	sem := make(chan struct{}, concurrency)
+	for i := 0; i < n; i++ {
+		if ctx.Err() != nil {
+			break
+		}
+		i := i
+		wg.Add(1)
+		sem <- struct{}{}
+		go func() {
+			defer wg.Done()
+			defer func() { <-sem }()
+			if ctx.Err() != nil {
+				return
+			}
+			work(i)
+		}()
+	}
+	wg.Wait()
 }
 
 func FormatAnalysis(result *lookup.Result) string {
