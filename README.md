@@ -36,7 +36,7 @@ chmod +x bibcheck-linux-amd64
 
 ## Quick Start (Build from Source)
 
-1. Install Go >= 1.24.0
+1. Install Go >= 1.25.0
 2. Compile and run:
 ```bash
 go run main.go
@@ -146,6 +146,7 @@ go run main.go --concurrency 8 test/20231113_siefert_pmbs.pdf
     * `bib` extracts the bibliography
     * `entry` extracts a single bibliography entry
     * `list-entries` lists numeric bibliography entry IDs
+* Runs as an [MCP server](docs/mcp.md) (`bibcheck mcp`) exposing `check_bibliography` and `check_entry` tools to Claude Code, Claude Desktop, and other MCP clients
 
 ## "Search" strategy
 

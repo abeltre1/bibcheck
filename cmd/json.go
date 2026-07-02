@@ -35,6 +35,15 @@ type jsonDocumentView struct {
 }
 
 func renderJSONDocument(doc documentView, views []entryView, carelessHideOK bool, singleEntry bool) (string, error) {
+	payload := buildJSONDocument(doc, views, carelessHideOK, singleEntry)
+	out, err := json.MarshalIndent(payload, "", "  ")
+	if err != nil {
+		return "", err
+	}
+	return string(out) + "\n", nil
+}
+
+func buildJSONDocument(doc documentView, views []entryView, carelessHideOK bool, singleEntry bool) jsonDocumentView {
 	payload := jsonDocumentView{
 		Format:          string(outputFormatJSON),
 		TotalEntries:    doc.total,
@@ -62,11 +71,7 @@ func renderJSONDocument(doc documentView, views []entryView, carelessHideOK bool
 		})
 	}
 
-	out, err := json.MarshalIndent(payload, "", "  ")
-	if err != nil {
-		return "", err
-	}
-	return string(out) + "\n", nil
+	return payload
 }
 
 func toJSONSources(sources []sourceView) []jsonSourceView {

@@ -3,21 +3,13 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
-	"log"
 	"os"
-	"sync"
 
 	"github.com/spf13/cobra"
 
 	"github.com/sandialabs/bibcheck/config"
-	"github.com/sandialabs/bibcheck/documents"
-	"github.com/sandialabs/bibcheck/elsevier"
-	"github.com/sandialabs/bibcheck/entries"
 	"github.com/sandialabs/bibcheck/lookup"
-	"github.com/sandialabs/bibcheck/openrouter"
-	"github.com/sandialabs/bibcheck/shirty"
 	"github.com/sandialabs/bibcheck/version"
 )
 
@@ -59,159 +51,45 @@ A tool that analyzes bibliography entries in PDF files and verifies their existe
 		}
 
 		pdfPath := args[0]
-		settings := config.Runtime()
 		entryStart := 1
 		var entryCount int
 
-		// set up clients depending on config
-		var openrouterClient *openrouter.Client
-		var shirtyProvider *shirty.Workflow
-		if settings.OpenRouterAPIKey != "" && settings.OpenRouterBaseURL != "" {
-			openrouterClient = openrouter.NewClient(
-				settings.OpenRouterAPIKey,
-				openrouter.WithBaseURL(settings.OpenRouterBaseURL),
-			)
-		}
-		if settings.ShirtyAPIKey != "" && settings.ShirtyBaseURL != "" {
-			shirtyProvider = shirty.NewWorkflow(
-				settings.ShirtyAPIKey,
-				shirty.WithBaseUrl(settings.ShirtyBaseURL))
+		rt, err := newAnalysisRuntime(config.Runtime())
+		if err != nil {
+			return err
 		}
 
-		var elsevierClient *elsevier.Client
-		if settings.ElsevierAPIKey != "" {
-			elsevierClient = elsevier.NewClient(settings.ElsevierAPIKey)
+		bibliography, err := rt.prepare(pdfPath)
+		if err != nil {
+			return fmt.Errorf("prepare bibliography error: %w", err)
 		}
 
-		var bibliography *documents.Bibliography
-		var err error
-
-		if shirtyProvider != nil {
-			bibliography, err = shirtyProvider.PrepareBibliography(pdfPath)
-			if err != nil {
-				return fmt.Errorf("prepare bibliography error: %w", err)
-			}
-		} else if openrouterClient != nil {
-			bibliography, err = openrouterClient.PrepareBibliography(pdfPath)
-			if err != nil {
-				return fmt.Errorf("prepare bibliography error: %w", err)
-			}
+		// Progress chatter goes to stderr when stdout carries machine-readable
+		// JSON, so `--format json` output stays parseable.
+		progress := os.Stdout
+		if format == outputFormatJSON {
+			progress = os.Stderr
 		}
 
 		if cmd.Flags().Changed(FlagEntry) {
 			entryStart, _ = cmd.Flags().GetInt(FlagEntry)
 			entryCount = 1
 		} else {
-
-			// Get citation counts
-			if bibliography != nil && openrouterClient != nil && shirtyProvider == nil {
-				fmt.Println("Counting bibliography entries...")
-				entryCount, err = openrouterClient.NumBibliographyEntries(bibliography)
-				if err != nil {
-					return fmt.Errorf("bibliography size error: %w", err)
-				}
-				fmt.Printf("Found %d bibliographic entries\n", entryCount)
-			} else if bibliography != nil {
-				entryCount, err = shirtyProvider.NumBibEntries(bibliography)
-				if err != nil {
-					return fmt.Errorf("bibliography size error: %w", err)
-				}
-
-			} else {
-				return errors.New("need shirty or openrouter config")
+			if rt.kind == providerOpenRouter {
+				fmt.Fprintln(progress, "Counting bibliography entries...")
 			}
-		}
-
-		var class entries.Classifier
-		var entryParser entries.Parser
-		var docBibliographyExtract documents.EntryFromBibliographyExtractor
-		var docMeta documents.MetaExtractor
-
-		// default to using openrouter, if available
-		if openrouterClient != nil {
-			class = openrouterClient
-			entryParser = openrouterClient
-			docBibliographyExtract = openrouterClient
-			docMeta = openrouterClient
-		}
-
-		// use shirty where possible
-		if shirtyProvider != nil {
-			class = shirtyProvider
-			entryParser = shirtyProvider
-			docBibliographyExtract = shirtyProvider
-			docMeta = shirtyProvider
-		}
-
-		cfg := &lookup.EntryConfig{
-			ElsevierClient: elsevierClient,
-		}
-
-		var summarizer summarizer
-		if openrouterClient != nil {
-			summarizer = openrouterClient
-		}
-		if shirtyProvider != nil {
-			summarizer = shirtyProvider
-		}
-
-		if docBibliographyExtract == nil || bibliography == nil {
-			return errors.New("requires something that can extract a bib entry from a pdf")
+			entryCount, err = rt.countEntries(bibliography)
+			if err != nil {
+				return fmt.Errorf("bibliography size error: %w", err)
+			}
+			if rt.kind == providerOpenRouter {
+				fmt.Fprintf(progress, "Found %d bibliographic entries\n", entryCount)
+			}
 		}
 
 		singleEntry := cmd.Flags().Changed(FlagEntry)
 
-		concurrency := settings.Concurrency
-		if concurrency < 1 {
-			concurrency = 1
-		}
-
-		// Entries are independent and their analysis is network-I/O bound, so fan
-		// the work out across a bounded worker pool. Results are written back by
-		// index to keep the original entry order; a nil slot means the entry
-		// errored and is skipped, matching the previous sequential behavior.
-		pending := make([]*entryView, entryCount)
-		var wg sync.WaitGroup
-		sem := make(chan struct{}, concurrency)
-
-		for offset := 0; offset < entryCount; offset++ {
-			offset := offset
-			i := entryStart + offset
-			wg.Add(1)
-			sem <- struct{}{}
-			go func() {
-				defer wg.Done()
-				defer func() { <-sem }()
-
-				lr, err := lookup.EntryFromBibliography(bibliography, i, pipeline, class, docBibliographyExtract, docMeta, entryParser, cfg)
-				if err != nil {
-					log.Printf("entry analysis error: %v", err)
-					return
-				}
-
-				outcome := summaryOutcome{}
-				if summarizer != nil {
-					mismatch, comment, err := summarizer.Summarize(lr)
-					outcome.mismatch = mismatch
-					outcome.comment = comment
-					outcome.err = err
-					if err != nil {
-						log.Printf("summarizer error: %v", err)
-					}
-				}
-
-				view := buildEntryView(i, lr, outcome)
-				pending[offset] = &view
-			}()
-		}
-		wg.Wait()
-
-		views := make([]entryView, 0, entryCount)
-		for _, v := range pending {
-			if v != nil {
-				views = append(views, *v)
-			}
-		}
+		views := rt.analyzeDocument(bibliography, entryStart, entryCount, pipeline)
 
 		doc := buildDocumentView(views, carelessHideOK)
 		switch format {
@@ -253,6 +131,7 @@ func init() {
 	rootCmd.AddCommand(doiCmd)
 	rootCmd.AddCommand(entryCmd)
 	rootCmd.AddCommand(listEntriesCmd)
+	rootCmd.AddCommand(mcpCmd)
 	rootCmd.AddCommand(textractCmd)
 	rootCmd.AddCommand(serveCmd)
 }
